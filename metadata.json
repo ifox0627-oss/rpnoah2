@@ -1,0 +1,8 @@
+{
+  "name": "6학년 공간과 입체 OX 퀴즈",
+  "description": "초등학교 6학년 수학 2단원 공간과 입체 개념을 재미있게 익히는 알록달록 OX 퀴즈와 3D 쌓기나무 인터랙티브 탐구 게임",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

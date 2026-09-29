@@ -6,6 +6,7 @@ interface ReadyScreenProps {
   onGenerateGeminiQuiz: () => void;
   onShuffleBankQuiz: () => void;
   onOpenSandbox: () => void;
+  onOpenExportModal: () => void;
   isGenerating?: boolean;
 }
 
@@ -15,6 +16,7 @@ export const ReadyScreen: React.FC<ReadyScreenProps> = ({
   onGenerateGeminiQuiz,
   onShuffleBankQuiz,
   onOpenSandbox,
+  onOpenExportModal,
   isGenerating = false,
 }) => {
   return (
@@ -138,16 +140,15 @@ export const ReadyScreen: React.FC<ReadyScreenProps> = ({
           <span>쌓기나무 3D 실험실 미리보기</span>
         </button>
 
-        {/* GitHub Standalone Single HTML Download Button */}
-        <a
-          href="/standalone.html"
-          download="index.html"
-          className="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs sm:text-sm shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5 no-underline"
-          title="GitHub Pages 또는 오프라인에서 바로 실행할 수 있는 단일 index.html 파일 다운로드"
+        {/* GitHub Standalone Single HTML Export Button */}
+        <button
+          onClick={onOpenExportModal}
+          className="px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs sm:text-sm shadow-xs cursor-pointer active:scale-95 transition-all flex items-center gap-1.5"
+          title="GitHub Pages 또는 오프라인에서 바로 실행할 수 있는 단일 index.html 파일 다운로드 및 코드 복사"
         >
           <span>📥</span>
           <span>GitHub용 단일 HTML 다운로드 (index.html)</span>
-        </a>
+        </button>
       </div>
     </div>
   );

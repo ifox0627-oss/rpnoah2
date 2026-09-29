@@ -10,6 +10,7 @@ import { Header } from './components/Header';
 import { ReadyScreen } from './components/ReadyScreen';
 import { CountdownOverlay } from './components/CountdownOverlay';
 import { AILoadingModal } from './components/AILoadingModal';
+import { ExportHtmlModal } from './components/ExportHtmlModal';
 import { sound } from './utils/sound';
 
 const QUESTION_TIME_LIMIT = 15;
@@ -21,6 +22,9 @@ export default function App() {
 
   // Game phase: starts on 'ready' screen when link is opened
   const [gamePhase, setGamePhase] = useState<GamePhase>('ready');
+
+  // Export HTML modal state
+  const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
   // Initialize with randomly sampled questions from bank so questions are never static
   const [questionList, setQuestionList] = useState<QuizQuestion[]>(() => getRandomBankQuestions());
@@ -308,6 +312,7 @@ export default function App() {
         onGenerateNewQuiz={() => handleGenerateNewQuiz(false)}
         onShuffleBankQuiz={() => handleShuffleBankQuiz(false)}
         onGoToReady={handleGoToReady}
+        onOpenExportModal={() => setIsExportModalOpen(true)}
         isGenerating={isGenerating}
       />
 
@@ -321,6 +326,7 @@ export default function App() {
               onGenerateGeminiQuiz={() => handleGenerateNewQuiz(false)}
               onShuffleBankQuiz={() => handleShuffleBankQuiz(false)}
               onOpenSandbox={() => setActiveTab('sandbox')}
+              onOpenExportModal={() => setIsExportModalOpen(true)}
               isGenerating={isGenerating}
             />
           ) : gamePhase === 'completed' ? (
@@ -378,6 +384,12 @@ export default function App() {
 
       {/* AI Loading Modal */}
       <AILoadingModal isOpen={isGenerating} />
+
+      {/* Export HTML Modal (In-Memory Blob download with no cookies/auth) */}
+      <ExportHtmlModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+      />
 
       {/* Footer */}
       <footer className="w-full py-4 text-center text-xs font-bold text-slate-500 border-t border-amber-200 bg-white/50">

@@ -91,6 +91,17 @@ export const Header: React.FC<HeaderProps> = ({
             <span>{isGenerating ? '출제 중...' : 'Gemini 출제'}</span>
           </button>
 
+          {/* GitHub Standalone Download Link */}
+          <a
+            href="/standalone.html"
+            download="index.html"
+            title="GitHub Pages용 단일 index.html 다운로드"
+            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-black border border-indigo-200 shadow-2xs no-underline"
+          >
+            <span>📥</span>
+            <span>GitHub HTML</span>
+          </a>
+
           <button
             onClick={onToggleSound}
             aria-label={isMuted ? '소리 켜기' : '소리 끄기'}

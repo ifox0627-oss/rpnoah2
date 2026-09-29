@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>보림초 6학년 2반 공간과 입체 OX 퀴즈</title>
+  <meta name="description" content="보림초 6학년 2반 수학 2단원 공간과 입체 15초 제한 시간 알록달록 OX 퀴즈 게임 (GitHub Pages 및 단일 HTML 실행용)" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Pretendard Font CDN -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.browser.min.js"></script>
+
+  <!-- React 18 & ReactDOM 18 UMD -->
+  <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel Standalone for in-browser JSX compilation -->
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.4/babel.min.js"></script>
+
+  <style>
+    body {
+      font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      background-color: #fffbeb;
+    }
+    @keyframes pulseWarning {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .animate-pulse-fast {
+      animation: pulseWarning 0.6s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-amber-50 text-slate-800 antialiased min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useCallback, useMemo } = React;
+
+    // --- Web Audio API Sound Synthesizer ---
+    class SoundEffects {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+      }
+
+      initCtx() {
+        if (!this.ctx && typeof window !== 'undefined') {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      setMuted(muted) { this.isMuted = muted; }
+      getMuted() { return this.isMuted; }
+
+      playCorrect() {
+        if (this.isMuted) return;
+        try {
+          this.initCtx();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const notes = [523.25, 659.25, 783.99, 1046.5];
+          notes.forEach((freq, idx) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.35);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 0.35);
+          });
+        } catch (e) {}
+      }
+
+      playIncorrect() {
+        if (this.isMuted) return;
+        try {
+          this.initCtx();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(380, now);
+          osc.frequency.exponentialRampToValueAtTime(220, now + 0.25);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        } catch (e) {}
+      }
+
+      playClick() {
+        if (this.isMuted) return;
+        try {
+          this.initCtx();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, now);
+          osc.frequency.exponentialRampToValueAtTime(400, now + 0.06);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.06);
+        } catch (e) {}
+      }
+
+      playTick() {
+        if (this.isMuted) return;
+        try {
+          this.initCtx();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(600, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.04);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        } catch (e) {}
+      }
+
+      playTimeout() {
+        if (this.isMuted) return;
+        try {
+          this.initCtx();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.setValueAtTime(240, now + 0.15);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } catch (e) {}
+      }
+
+      playCountdownBeep(isFinal = false) {
+        if (this.isMuted) return;
+        try {
+          this.initCtx();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = isFinal ? 'triangle' : 'sine';
+          osc.frequency.setValueAtTime(isFinal ? 1046.5 : 587.33, now);
+          gain.gain.setValueAtTime(isFinal ? 0.3 : 0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + (isFinal ? 0.4 : 0.18));
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + (isFinal ? 0.4 : 0.18));
+        } catch (e) {}
+      }
+
+      playFanfare() {
+        if (this.isMuted) return;
+        try {
+          this.initCtx();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const notes = [
+            { f: 523.25, d: 0.12 },
+            { f: 523.25, d: 0.12 },
+            { f: 523.25, d: 0.12 },
+            { f: 659.25, d: 0.25 },
+            { f: 783.99, d: 0.2 },
+            { f: 1046.5, d: 0.5 },
+          ];
+          let elapsed = 0;
+          notes.forEach(note => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(note.f, now + elapsed);
+            gain.gain.setValueAtTime(0.25, now + elapsed);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + elapsed + note.d);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now + elapsed);
+            osc.stop(now + elapsed + note.d);
+            elapsed += note.d * 0.9;
+          });
+        } catch (e) {}
+      }
+    }
+
+    const sound = new SoundEffects();
+
+    // --- 24-Question Bank (3 하, 3 중, 4 상 random sampling) ---
+    const QUESTION_BANK = {
+      easy: [
+        {
+          id: 1,
+          question: "어느 방향(위, 앞, 옆)에서 보았는지에 따라 쌓기나무 모양이 다르게 보일 수 있다.",
+          answer: "O",
+          conceptTitle: "보는 방향에 따른 모양",
+          explanation: "맞아요! 같은 쌓기나무 모양이라도 위에서 내려다볼 때, 앞에서 볼 때, 옆에서 볼 때 보이는 모양이 각각 달라질 수 있어요.",
+          keyTakeaway: "보는 위치(위·앞·옆)에 따라 서로 다른 2차원 평면 모양으로 관찰됩니다.",
+          diagramType: "views_comparison",
+        },
+        {
+          id: 2,
+          question: "위에서 내려다본 모양은 쌓기나무 '1층'의 바닥 모양과 똑같다.",
+          answer: "O",
+          conceptTitle: "위에서 본 모양과 1층 바닥",
+          explanation: "맞아요! 위에서 내려다본 모든 칸은 1층 바닥에 쌓기나무가 놓여 있는 자리와 완전히 일치해요.",
+          keyTakeaway: "위에서 본 모양의 칸 수 = 1층에 놓인 쌓기나무의 개수입니다.",
+          diagramType: "bottom_matching",
+        },
+        {
+          id: 3,
+          question: "쌓기나무를 2층에 올릴 때, 1층에 아무것도 없어도 공중에 띄워 놓을 수 있다.",
+          answer: "X",
+          conceptTitle: "쌓기나무의 물리적 규칙",
+          explanation: "아니에요! 쌓기나무는 중력 때문에 공중에 뜰 수 없어요. 2층에 블록을 놓으려면 반드시 그 바로 아래(1층)에 받쳐주는 쌓기나무가 있어야 해요.",
+          keyTakeaway: "위층에 쌓기나무가 있으려면 반드시 그 바로 아래층에도 쌓기나무가 있어야 합니다.",
+          diagramType: "gravity_support",
+        },
+        {
+          id: 4,
+          question: "쌓기나무 1개는 모든 면이 정사각형인 '정육면체' 모양이다.",
+          answer: "O",
+          conceptTitle: "쌓기나무의 기본 형태",
+          explanation: "맞아요! 초등학교 수학에서 사용하는 쌓기나무는 6개의 면이 모두 합동인 정사각형으로 이루어진 정육면체예요.",
+          keyTakeaway: "쌓기나무의 기본 블록은 모든 모서리 길이가 같은 정육면체입니다.",
+          diagramType: "views_comparison",
+        },
+        {
+          id: 5,
+          question: "1층에 쌓기나무가 4개 놓여 있다면, 위에서 본 모양도 4칸으로 보인다.",
+          answer: "O",
+          conceptTitle: "1층과 위에서 본 모양",
+          explanation: "맞아요! 위에서 보면 바닥 1층에 놓인 자리가 그대로 보이므로, 1층에 4개가 놓여 있다면 위에서 본 모양도 4칸이 됩니다.",
+          keyTakeaway: "위에서 본 모양의 칸 수는 1층 바닥에 깔린 쌓기나무 개수와 동일합니다.",
+          diagramType: "bottom_matching",
+        },
+        {
+          id: 6,
+          question: "쌓기나무 2개로 만들 수 있는 서로 다른 입체 모양은 돌려보아도 오직 1가지뿐이다.",
+          answer: "O",
+          conceptTitle: "쌓기나무 2개로 만드는 모양",
+          explanation: "맞아요! 쌓기나무 2개를 맞붙이면 세우거나 눕혀도 돌리면 같은 1가지 모양(직사각형 기둥)만 만들어집니다.",
+          keyTakeaway: "돌려서 같은 모양이 되는 것은 서로 같은 모양으로 취급합니다.",
+          diagramType: "four_block_shapes",
+        },
+        {
+          id: 7,
+          question: "앞에서 본 모양만으로 쌓기나무가 앞뒤로 몇 칸 놓여 있는지 정확히 알 수 있다.",
+          answer: "X",
+          conceptTitle: "앞에서 본 모양의 한계",
+          explanation: "틀려요! 앞에서 보면 앞뒤 깊이를 알 수 없기 때문에, 뒤쪽으로 쌓기나무가 얼마나 길게 놓여 있는지는 위나 옆에서 보아야 알 수 있어요.",
+          keyTakeaway: "앞에서 본 모양은 좌우 폭과 높이만 보여주며 앞뒤 깊이는 가려집니다.",
+          diagramType: "front_vs_side",
+        },
+        {
+          id: 8,
+          question: "쌓기나무를 3층까지 쌓으려면, 최소한 1층과 2층에도 각각 1개 이상의 쌓기나무가 있어야 한다.",
+          answer: "O",
+          conceptTitle: "3층 쌓기 조건",
+          explanation: "맞아요! 3층에 닿으려면 1층과 2층이 차례대로 밑을 받쳐주어야 하므로 최소 1개씩 필요합니다.",
+          keyTakeaway: "층수만큼 아래층이 기둥처럼 받쳐주어야 위층을 쌓을 수 있어요.",
+          diagramType: "gravity_support",
+        },
+      ],
+      medium: [
+        {
+          id: 9,
+          question: "쌓기나무를 '위에서 본 모양'만 알면 전체 쌓기나무 개수를 정확히 알 수 있다.",
+          answer: "X",
+          conceptTitle: "위에서 본 모양과 층수 한계",
+          explanation: "아니에요! 위에서 본 모양만으로는 각 자리에 쌓인 블록이 1층인지 2층인지 3층인지 알 수 없어서 정확한 개수를 맞힐 수 없어요.",
+          keyTakeaway: "위에서 본 모양은 바닥 자리만 알려줄 뿐, 몇 층까지 쌓였는지는 알 수 없어요.",
+          diagramType: "top_view_only",
+        },
+        {
+          id: 10,
+          question: "위에서 본 모양의 각 자리에 쌓인 개수(층수)를 쓰면 전체 개수를 정확히 알 수 있다.",
+          answer: "O",
+          conceptTitle: "위에서 본 모양에 수를 쓰는 방법",
+          explanation: "맞아요! 위에서 본 모양의 각 칸에 쌓인 층수(1, 2, 3...)를 숫자로 적어놓고 모두 더하면 숨은 쌓기나무 없이 총개수를 100% 알 수 있어요!",
+          keyTakeaway: "각 자리에 적힌 수를 모두 더하면 쌓기나무의 총개수를 오차 없이 구할 수 있어요.",
+          diagramType: "numbered_grid",
+        },
+        {
+          id: 11,
+          question: "1층, 2층, 3층처럼 '층별로 나타낸 모양'을 보면 쌓기나무의 전체 개수를 알 수 있다.",
+          answer: "O",
+          conceptTitle: "층별로 나타낸 모양",
+          explanation: "맞아요! 1층 모양, 2층 모양, 3층 모양을 각각 따로 그려놓으면 각 층에 놓인 쌓기나무 개수를 세어서 합칠 수 있어요.",
+          keyTakeaway: "각 층별(1층, 2층, 3층...)로 분리해서 보면 쌓기나무 개수를 손쉽게 셀 수 있어요.",
+          diagramType: "layers",
+        },
+        {
+          id: 12,
+          question: "층별로 나타낸 모양에서 2층의 쌓기나무 개수가 1층의 쌓기나무 개수보다 더 많을 수 있다.",
+          answer: "X",
+          conceptTitle: "층별 개수의 관계",
+          explanation: "틀려요! 2층 쌓기나무는 반드시 1층 쌓기나무 위에만 얹을 수 있으므로, 2층 개수는 1층 개수를 절대 초과할 수 없어요.",
+          keyTakeaway: "위층의 쌓기나무 개수는 아래층의 쌓기나무 개수보다 많을 수 없습니다.",
+          diagramType: "gravity_support",
+        },
+        {
+          id: 13,
+          question: "쌓기나무 3개로 만들 수 있는 서로 다른 모양은 '일자형(ㅡ)'과 'ㄱ자형' 총 2가지이다.",
+          answer: "O",
+          conceptTitle: "쌓기나무 3개로 만드는 모양",
+          explanation: "맞아요! 쌓기나무 3개를 연결하면 일렬로 길쭉한 모양(1가지)과 꺾인 ㄱ자 모양(1가지)으로 오직 2가지 형태만 나옵니다.",
+          keyTakeaway: "쌓기나무 3개로 만들 수 있는 모양은 돌렸을 때 같은 것을 제외하면 총 2가지입니다.",
+          diagramType: "four_block_shapes",
+        },
+        {
+          id: 14,
+          question: "위에서 본 모양의 3개 칸에 숫자가 각각 [2, 1, 3]이라고 적혀 있다면 전체 개수는 6개이다.",
+          answer: "O",
+          conceptTitle: "수 쓰기 방법의 개수 셈",
+          explanation: "맞아요! 2 + 1 + 3 = 6이므로, 각 자리에 적힌 수를 모두 더하면 총 6개가 됩니다.",
+          keyTakeaway: "위에서 본 모양에 적힌 수를 모두 더한 값이 전체 쌓기나무 개수가 됩니다.",
+          diagramType: "numbered_grid",
+        },
+        {
+          id: 15,
+          question: "각 층별 쌓기나무가 1층 4개, 2층 2개, 3층 1개라면 전체 쌓기나무의 수는 8개이다.",
+          answer: "X",
+          conceptTitle: "층별 개수 합산",
+          explanation: "틀려요! 4 + 2 + 1 = 7개입니다. 8개가 아니라 7개예요!",
+          keyTakeaway: "층별 개수를 더할 때 1층(4) + 2층(2) + 3층(1) = 7개로 정확히 덧셈해야 합니다.",
+          diagramType: "layers",
+        },
+        {
+          id: 16,
+          question: "앞에서 본 모양의 칸 수는 사용된 쌓기나무의 전체 개수와 항상 똑같다.",
+          answer: "X",
+          conceptTitle: "앞에서 본 모양과 전체 개수의 차이",
+          explanation: "틀려요! 앞에서 볼 때는 같은 줄의 앞뒤 쌓기나무가 겹쳐서 가려지기 때문에, 보이는 칸 수보다 실제 전체 개수가 훨씬 많을 수 있어요.",
+          keyTakeaway: "앞이나 옆에서 볼 때는 앞뒤로 겹친 쌓기나무가 가려져 전체 개수와 다릅니다.",
+          diagramType: "front_vs_side",
+        },
+      ],
+      hard: [
+        {
+          id: 17,
+          question: "쌓기나무로 쌓은 모양을 '앞'에서 본 모양과 '옆'에서 본 모양은 항상 똑같다.",
+          answer: "X",
+          conceptTitle: "앞과 옆의 시선 비교",
+          explanation: "틀려요! 앞에서 볼 때와 옆에서 볼 때 각 줄에서 가장 높은 층의 높이가 서로 다를 수 있기 때문에, 앞과 옆에서 본 모양은 다를 수 있어요.",
+          keyTakeaway: "앞에서 본 모양과 옆에서 본 모양은 각 방향의 최고 층수에 따라 달라질 수 있어요.",
+          diagramType: "front_vs_side",
+        },
+        {
+          id: 18,
+          question: "앞에서 보았을 때 보이는 칸의 수는 각 줄에서 '가장 높은 층'의 수와 같다.",
+          answer: "O",
+          conceptTitle: "시선과 최고 높이의 원리",
+          explanation: "맞아요! 앞에서 볼 때 뒤쪽에 있는 낮은 쌓기나무는 앞의 높은 쌓기나무에 가려지기 때문에, 그 줄에서 '가장 높은 층'의 높이만큼만 눈에 보이게 돼요.",
+          keyTakeaway: "앞이나 옆에서 볼 때는 각 줄에서 '가장 높은 층'의 칸 수만 보입니다.",
+          diagramType: "max_height_sightline",
+        },
+        {
+          id: 19,
+          question: "위, 앞, 옆에서 본 모양이 모두 주어지더라도 쌓은 모양이 2가지 이상 가능한 경우가 있다.",
+          answer: "O",
+          conceptTitle: "보이지 않는 숨은 자리 추론",
+          explanation: "맞아요! 높은 쌓기나무 뒤편에 가려진 '숨은 자리'가 있다면, 위·앞·옆 모양이 완전히 일치하더라도 쌓기나무가 있는 경우와 없는 경우 등 모양이 2가지 이상 나올 수 있어요.",
+          keyTakeaway: "위, 앞, 옆 모양만으로는 숨겨진 자리가 생길 수 있어 모양이 한 가지로 정해지지 않을 때가 있어요.",
+          diagramType: "hidden_blocks",
+        },
+        {
+          id: 20,
+          question: "쌓기나무 4개로 만들 수 있는 서로 다른 입체 모양은 오직 1가지뿐이다.",
+          answer: "X",
+          conceptTitle: "여러 가지 입체 모양의 구성",
+          explanation: "틀려요! 쌓기나무 4개를 이용하면 일자형(1×4), L자형, T자형, 번개 모양, 2층 계단형 등 무려 8가지 이상의 서로 다른 모양을 만들 수 있어요!",
+          keyTakeaway: "같은 개수의 쌓기나무라도 이어 붙이는 위치와 층에 따라 다양한 모양을 만들 수 있어요.",
+          diagramType: "four_block_shapes",
+        },
+        {
+          id: 21,
+          question: "위, 앞, 옆 모양이 주어졌을 때 사용된 쌓기나무의 '최소 개수'와 '최대 개수'가 서로 다를 수 있다.",
+          answer: "O",
+          conceptTitle: "최소 개수와 최대 개수",
+          explanation: "맞아요! 숨겨진 자리가 있는 경우, 그 자리에 쌓기나무를 놓지 않았을 때가 최소 개수, 꽉 채워 놓았을 때가 최대 개수가 되어 서로 달라질 수 있어요.",
+          keyTakeaway: "숨은 자리가 생기면 모양에 따라 필요한 쌓기나무의 최소 개수와 최대 개수에 차이가 납니다.",
+          diagramType: "hidden_blocks",
+        },
+        {
+          id: 22,
+          question: "위에서 본 모양의 칸 수가 4칸이고 최고 높이가 2층이라면, 필요한 쌓기나무의 최소 개수는 4개이다.",
+          answer: "X",
+          conceptTitle: "최고 높이와 최소 개수 계산",
+          explanation: "틀려요! 4칸 모두 1층이면 4개지만, 최고 높이가 2층이므로 적어도 한 칸은 2층이어야 해요. 따라서 최소 개수는 2 + 1 + 1 + 1 = 5개입니다!",
+          keyTakeaway: "최고 층수가 2층이라면 적어도 한 칸은 2개 이상 쌓여 있어야 하므로 4개가 될 수 없어요.",
+          diagramType: "numbered_grid",
+        },
+        {
+          id: 23,
+          question: "숨겨진 자리에 쌓기나무가 있는지 없는지 100% 확실하게 파악하는 가장 좋은 방법은 '위에서 본 모양에 수를 쓰는 방법'이다.",
+          answer: "O",
+          conceptTitle: "가장 정확한 표현 방법",
+          explanation: "맞아요! 위에서 본 모양의 모든 칸에 쌓인 숫자를 직접 적어두면 어떤 자리도 숨겨지지 않아 완벽하게 형태와 개수를 알 수 있어요.",
+          keyTakeaway: "위에서 본 모양에 수를 쓰는 방법은 숨은 자리 없이 쌓기나무를 가장 정확히 나타냅니다.",
+          diagramType: "numbered_grid",
+        },
+        {
+          id: 24,
+          question: "앞에서 본 모양이 2층 2칸이고 옆에서 본 모양도 2층 2칸이라면, 사용된 쌓기나무는 무조건 4개로 고정된다.",
+          answer: "X",
+          conceptTitle: "앞과 옆 모양의 다양성",
+          explanation: "틀려요! 앞과 옆 모양이 같아도 바닥 배치와 겹침에 따라 3개, 4개, 5개 등 다양한 개수로 쌓을 수 있어요.",
+          keyTakeaway: "앞과 옆 모양만으로는 쌓기나무의 개수를 단 하나로 확정할 수 없습니다.",
+          diagramType: "front_vs_side",
+        },
+      ],
+    };
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function getRandom10Questions() {
+      const e = shuffleArray(QUESTION_BANK.easy).slice(0, 3);
+      const m = shuffleArray(QUESTION_BANK.medium).slice(0, 3);
+      const h = shuffleArray(QUESTION_BANK.hard).slice(0, 4);
+      return [...e, ...m, ...h].map((q, idx) => ({
+        ...q,
+        id: idx + 1,
+        difficulty: idx < 3 ? '하' : idx < 6 ? '중' : '상',
+      }));
+    }
+
+    // --- Diagram Component ---
+    function QuestionDiagram({ type }) {
+      switch (type) {
+        case 'views_comparison':
+          return (
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 p-4 bg-amber-50 rounded-2xl border-2 border-amber-200">
+              <div className="text-center">
+                <span className="text-xs font-black text-amber-800 block mb-1">⬇️ 위에서 본 모양</span>
+                <div className="grid grid-cols-2 gap-1 w-16 h-16 bg-white p-1 rounded-lg border border-amber-300">
+                  <div className="bg-amber-400 rounded"></div>
+                  <div className="bg-amber-400 rounded"></div>
+                  <div className="bg-amber-400 rounded"></div>
+                  <div className="bg-amber-100 rounded border border-dashed border-amber-300"></div>
+                </div>
+              </div>
+              <div className="text-center">
+                <span className="text-xs font-black text-sky-800 block mb-1">➡️ 앞에서 본 모양</span>
+                <div className="grid grid-cols-2 gap-1 w-16 h-16 bg-white p-1 rounded-lg border border-sky-300 items-end">
+                  <div className="bg-sky-400 h-10 rounded"></div>
+                  <div className="bg-sky-400 h-5 rounded"></div>
+                </div>
+              </div>
+              <div className="text-center">
+                <span className="text-xs font-black text-rose-800 block mb-1">⬅️ 옆에서 본 모양</span>
+                <div className="grid grid-cols-2 gap-1 w-16 h-16 bg-white p-1 rounded-lg border border-rose-300 items-end">
+                  <div className="bg-rose-400 h-10 rounded"></div>
+                  <div className="bg-rose-400 h-10 rounded"></div>
+                </div>
+              </div>
+            </div>
+          );
+        case 'bottom_matching':
+          return (
+            <div className="p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-200 text-center">
+              <span className="text-xs font-black text-emerald-800 block mb-2">
+                위에서 내려다본 격자 = 바닥 1층에 놓인 블록의 자리!
+              </span>
+              <div className="inline-grid grid-cols-3 gap-1 bg-white p-2 rounded-xl border border-emerald-300">
+                <div className="w-10 h-10 bg-emerald-400 rounded flex items-center justify-center font-black text-white text-sm">1층</div>
+                <div className="w-10 h-10 bg-emerald-400 rounded flex items-center justify-center font-black text-white text-sm">1층</div>
+                <div className="w-10 h-10 bg-emerald-100 rounded border border-dashed border-emerald-300 flex items-center justify-center text-xs text-emerald-600 font-bold">빈칸</div>
+                <div className="w-10 h-10 bg-emerald-400 rounded flex items-center justify-center font-black text-white text-sm">1층</div>
+                <div className="w-10 h-10 bg-emerald-100 rounded border border-dashed border-emerald-300 flex items-center justify-center text-xs text-emerald-600 font-bold">빈칸</div>
+                <div className="w-10 h-10 bg-emerald-100 rounded border border-dashed border-emerald-300 flex items-center justify-center text-xs text-emerald-600 font-bold">빈칸</div>
+              </div>
+            </div>
+          );
+        case 'numbered_grid':
+          return (
+            <div className="p-4 bg-purple-50 rounded-2xl border-2 border-purple-200 text-center">
+              <span className="text-xs font-black text-purple-800 block mb-2">
+                위에서 본 모양에 쌓인 층수 쓰기: 2 + 1 + 3 = 총 6개!
+              </span>
+              <div className="inline-grid grid-cols-3 gap-1.5 bg-white p-2.5 rounded-xl border border-purple-300 shadow-sm">
+                <div className="w-12 h-12 bg-purple-500 text-white rounded-lg flex items-center justify-center font-black text-xl shadow-xs">2</div>
+                <div className="w-12 h-12 bg-purple-400 text-white rounded-lg flex items-center justify-center font-black text-xl shadow-xs">1</div>
+                <div className="w-12 h-12 bg-purple-100 border border-dashed border-purple-300 rounded-lg"></div>
+                <div className="w-12 h-12 bg-purple-600 text-white rounded-lg flex items-center justify-center font-black text-xl shadow-xs">3</div>
+                <div className="w-12 h-12 bg-purple-100 border border-dashed border-purple-300 rounded-lg"></div>
+                <div className="w-12 h-12 bg-purple-100 border border-dashed border-purple-300 rounded-lg"></div>
+              </div>
+            </div>
+          );
+        case 'layers':
+          return (
+            <div className="flex flex-wrap items-center justify-center gap-3 p-4 bg-indigo-50 rounded-2xl border-2 border-indigo-200">
+              <div className="text-center">
+                <span className="text-xs font-black text-indigo-900 block mb-1">1층 모양 (4개)</span>
+                <div className="grid grid-cols-2 gap-1 w-12 h-12 bg-white p-1 rounded border border-indigo-300">
+                  <div className="bg-indigo-400 rounded"></div>
+                  <div className="bg-indigo-400 rounded"></div>
+                  <div className="bg-indigo-400 rounded"></div>
+                  <div className="bg-indigo-400 rounded"></div>
+                </div>
+              </div>
+              <span className="font-black text-indigo-500 text-lg">+</span>
+              <div className="text-center">
+                <span className="text-xs font-black text-indigo-900 block mb-1">2층 모양 (2개)</span>
+                <div className="grid grid-cols-2 gap-1 w-12 h-12 bg-white p-1 rounded border border-indigo-300">
+                  <div className="bg-indigo-500 rounded"></div>
+                  <div className="bg-indigo-500 rounded"></div>
+                  <div className="bg-indigo-100 rounded"></div>
+                  <div className="bg-indigo-100 rounded"></div>
+                </div>
+              </div>
+              <span className="font-black text-indigo-500 text-lg">+</span>
+              <div className="text-center">
+                <span className="text-xs font-black text-indigo-900 block mb-1">3층 모양 (1개)</span>
+                <div className="grid grid-cols-2 gap-1 w-12 h-12 bg-white p-1 rounded border border-indigo-300">
+                  <div className="bg-indigo-600 rounded"></div>
+                  <div className="bg-indigo-100 rounded"></div>
+                  <div className="bg-indigo-100 rounded"></div>
+                  <div className="bg-indigo-100 rounded"></div>
+                </div>
+              </div>
+              <span className="font-black text-indigo-700 text-sm">= 총 7개!</span>
+            </div>
+          );
+        default:
+          return (
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-center text-xs font-extrabold text-amber-800">
+              🎲 정육면체 쌓기나무의 입체 공간과 시선 원리를 잘 생각해보세요!
+            </div>
+          );
+      }
+    }
+
+    // --- Interactive 3D Block Sandbox ---
+    function BlockSandbox() {
+      const [grid, setGrid] = useState([
+        [1, 2, 0],
+        [3, 1, 0],
+        [0, 1, 2],
+      ]);
+
+      const totalBlocks = useMemo(() => {
+        return grid.reduce((sum, row) => sum + row.reduce((rSum, v) => rSum + v, 0), 0);
+      }, [grid]);
+
+      const handleCellClick = (r, c) => {
+        sound.playClick();
+        setGrid(prev => {
+          const next = prev.map(row => [...row]);
+          next[r][c] = (next[r][c] + 1) % 4; // 0 -> 1 -> 2 -> 3 -> 0
+          return next;
+        });
+      };
+
+      const handleReset = () => {
+        sound.playClick();
+        setGrid([
+          [0, 0, 0],
+          [0, 0, 0],
+          [0, 0, 0],
+        ]);
+      };
+
+      // Calculate Front View (Max height of each column r: 0..2)
+      const frontView = useMemo(() => {
+        const cols = [0, 1, 2];
+        return cols.map(c => Math.max(grid[0][c], grid[1][c], grid[2][c]));
+      }, [grid]);
+
+      // Calculate Side View (Max height of each row from right to left)
+      const sideView = useMemo(() => {
+        return [0, 1, 2].map(r => Math.max(...grid[r]));
+      }, [grid]);
+
+      return (
+        <div className="w-full max-w-3xl bg-white rounded-3xl sm:rounded-4xl p-6 sm:p-8 shadow-2xl border-6 border-amber-300">
+          <div className="flex items-center justify-between pb-4 border-b-2 border-amber-100">
+            <div>
+              <span className="text-xs font-black text-amber-600 bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">
+                인터랙티브 탐구
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
+                🧊 쌓기나무 3D 실험실
+              </h2>
+            </div>
+            <button
+              onClick={handleReset}
+              className="px-3 py-1.5 rounded-xl border border-slate-300 hover:bg-rose-50 hover:text-rose-600 text-xs font-black cursor-pointer"
+            >
+              모두 비우기 🔄
+            </button>
+          </div>
+
+          <p className="text-xs sm:text-sm font-bold text-slate-600 my-3">
+            칸을 클릭할 때마다 <strong>1층 ➡️ 2층 ➡️ 3층 ➡️ 0층</strong>으로 블록이 쌓입니다. 아래 위·앞·옆 모양 변화를 확인해보세요!
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-4">
+            {/* Grid clicker */}
+            <div className="flex flex-col items-center justify-center p-4 bg-amber-50 rounded-2xl border-2 border-amber-200">
+              <span className="text-xs font-black text-amber-900 mb-2">
+                ⬇️ 위에서 본 모양 (클릭하여 층수 조절)
+              </span>
+              <div className="grid grid-cols-3 gap-2 bg-white p-3 rounded-2xl border-2 border-amber-300 shadow-sm">
+                {grid.map((row, r) =>
+                  row.map((val, c) => (
+                    <button
+                      key={`${r}-${c}`}
+                      onClick={() => handleCellClick(r, c)}
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl font-black text-2xl flex items-center justify-center cursor-pointer transition-all border-2 ${
+                        val === 0
+                          ? 'bg-slate-50 text-slate-300 border-dashed border-slate-300 hover:bg-amber-100/50'
+                          : val === 1
+                          ? 'bg-emerald-400 text-white border-emerald-500 shadow-xs'
+                          : val === 2
+                          ? 'bg-sky-500 text-white border-sky-600 shadow-xs'
+                          : 'bg-indigo-600 text-white border-indigo-700 shadow-xs'
+                      }`}
+                    >
+                      {val > 0 ? val : ''}
+                    </button>
+                  ))
+                )}
+              </div>
+              <div className="mt-3 font-black text-slate-800 text-sm">
+                총 쌓기나무 개수: <span className="text-amber-600 text-lg">{totalBlocks}개</span>
+              </div>
+            </div>
+
+            {/* View projections */}
+            <div className="flex flex-col justify-around gap-4 p-4 bg-slate-50 rounded-2xl border-2 border-slate-200">
+              <div>
+                <span className="text-xs font-black text-slate-700 block mb-1">
+                  ➡️ 앞에서 본 모양 (각 줄의 최고 높이)
+                </span>
+                <div className="flex items-end gap-2 bg-white p-2 rounded-xl border border-slate-300 h-24">
+                  {frontView.map((h, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center">
+                      <div
+                        className="w-full bg-sky-500 rounded-t-lg transition-all"
+                        style={{ height: `${(h / 3) * 100}%` }}
+                      ></div>
+                      <span className="text-[10px] font-bold text-slate-500 mt-1">{h}층</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <span className="text-xs font-black text-slate-700 block mb-1">
+                  ⬅️ 옆(오른쪽)에서 본 모양
+                </span>
+                <div className="flex items-end gap-2 bg-white p-2 rounded-xl border border-slate-300 h-24">
+                  {sideView.map((h, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center">
+                      <div
+                        className="w-full bg-rose-500 rounded-t-lg transition-all"
+                        style={{ height: `${(h / 3) * 100}%` }}
+                      ></div>
+                      <span className="text-[10px] font-bold text-slate-500 mt-1">{h}층</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // --- Main Single-File Quiz Application ---
+    function App() {
+      const [gamePhase, setGamePhase] = useState('ready'); // 'ready' | 'countdown' | 'playing' | 'completed'
+      const [questions, setQuestions] = useState(() => getRandom10Questions());
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const [score, setScore] = useState(0);
+      const [answers, setAnswers] = useState([]);
+      const [activeTab, setActiveTab] = useState('quiz');
+      const [timeLeft, setTimeLeft] = useState(15);
+      const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+      const [currentUserAnswer, setCurrentUserAnswer] = useState('O');
+      const [isMuted, setIsMuted] = useState(false);
+      const [countdownNumber, setCountdownNumber] = useState(3);
+
+      const currentQ = questions[currentIndex];
+
+      // 15-Second Timer Hook
+      useEffect(() => {
+        if (gamePhase !== 'playing' || activeTab !== 'quiz' || isFeedbackOpen) return;
+
+        if (timeLeft <= 0) {
+          handleTimeout();
+          return;
+        }
+
+        const timer = setInterval(() => {
+          setTimeLeft(prev => {
+            if (prev <= 1) return 0;
+            if (prev <= 6 && prev > 1) sound.playTick();
+            return prev - 1;
+          });
+        }, 1000);
+
+        return () => clearInterval(timer);
+      }, [gamePhase, activeTab, isFeedbackOpen, timeLeft]);
+
+      // 3-2-1 Countdown Timer Hook
+      useEffect(() => {
+        if (gamePhase !== 'countdown') return;
+
+        sound.playCountdownBeep(false);
+        setCountdownNumber(3);
+
+        const timer = setInterval(() => {
+          setCountdownNumber(prev => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              sound.playCountdownBeep(true);
+              setTimeout(() => {
+                setTimeLeft(15);
+                setGamePhase('playing');
+              }, 600);
+              return 0; // "출발!"
+            }
+            sound.playCountdownBeep(false);
+            return prev - 1;
+          });
+        }, 900);
+
+        return () => clearInterval(timer);
+      }, [gamePhase]);
+
+      const handleTimeout = () => {
+        if (isFeedbackOpen || !currentQ) return;
+        sound.playTimeout();
+        setCurrentUserAnswer('TIMEOUT');
+        setAnswers(prev => [
+          ...prev,
+          { questionId: currentQ.id, userAnswer: 'TIMEOUT', isCorrect: false, scoreEarned: 0, isTimeout: true }
+        ]);
+        setIsFeedbackOpen(true);
+      };
+
+      const handleAnswer = (ans) => {
+        if (isFeedbackOpen || !currentQ || gamePhase !== 'playing') return;
+        const isCorrect = ans === currentQ.answer;
+        setCurrentUserAnswer(ans);
+
+        if (isCorrect) {
+          sound.playCorrect();
+          setScore(s => s + 100);
+          confetti({
+            particleCount: 40,
+            spread: 60,
+            origin: { y: 0.65 }
+          });
+        } else {
+          sound.playIncorrect();
+        }
+
+        setAnswers(prev => [
+          ...prev,
+          { questionId: currentQ.id, userAnswer: ans, isCorrect, scoreEarned: isCorrect ? 100 : 0 }
+        ]);
+        setIsFeedbackOpen(true);
+      };
+
+      const handleNextQuestion = () => {
+        setIsFeedbackOpen(false);
+        setTimeLeft(15);
+
+        if (currentIndex + 1 < questions.length) {
+          setCurrentIndex(i => i + 1);
+        } else {
+          setGamePhase('completed');
+          sound.playFanfare();
+          confetti({ particleCount: 100, spread: 100, origin: { y: 0.5 } });
+        }
+      };
+
+      const handleStartGame = () => {
+        sound.playClick();
+        setCurrentIndex(0);
+        setScore(0);
+        setAnswers([]);
+        setIsFeedbackOpen(false);
+        setGamePhase('countdown');
+      };
+
+      const handleNewBankGame = () => {
+        sound.playClick();
+        setQuestions(getRandom10Questions());
+        setCurrentIndex(0);
+        setScore(0);
+        setAnswers([]);
+        setIsFeedbackOpen(false);
+        setGamePhase('countdown');
+      };
+
+      const handleToggleMute = () => {
+        const next = !isMuted;
+        setIsMuted(next);
+        sound.setMuted(next);
+      };
+
+      const progressPercent = ((currentIndex + 1) / questions.length) * 100;
+      const timePercent = Math.max(0, Math.min(100, (timeLeft / 15) * 100));
+      const isUrgent = timeLeft <= 5;
+
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-amber-100/70 via-orange-50/50 to-amber-50 flex flex-col">
+          {/* Header */}
+          <header className="w-full bg-white/95 backdrop-blur-md border-b-2 border-amber-200 sticky top-0 z-40 shadow-xs">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+              <button
+                onClick={() => { setActiveTab('quiz'); setGamePhase('ready'); }}
+                className="flex items-center gap-2 cursor-pointer text-left group"
+              >
+                <span className="text-2xl sm:text-3xl group-hover:scale-110 transition-transform">🎲</span>
+                <span className="text-base sm:text-xl font-black text-slate-900 tracking-tight whitespace-nowrap">
+                  보림초 6-2 OX
+                </span>
+              </button>
+
+              <nav className="flex items-center gap-1.5 p-1 bg-amber-100/70 rounded-2xl border border-amber-200">
+                <button
+                  onClick={() => setActiveTab('quiz')}
+                  className={`px-3.5 py-1.5 text-xs sm:text-sm font-black rounded-xl transition-all cursor-pointer ${
+                    activeTab === 'quiz' ? 'bg-amber-500 text-white shadow-xs' : 'text-amber-900 hover:bg-amber-200/50'
+                  }`}
+                >
+                  ✏️ OX 퀴즈
+                </button>
+                <button
+                  onClick={() => setActiveTab('sandbox')}
+                  className={`px-3.5 py-1.5 text-xs sm:text-sm font-black rounded-xl transition-all cursor-pointer ${
+                    activeTab === 'sandbox' ? 'bg-amber-500 text-white shadow-xs' : 'text-amber-900 hover:bg-amber-200/50'
+                  }`}
+                >
+                  🧊 쌓기나무 실험실
+                </button>
+              </nav>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleNewBankGame}
+                  className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-black shadow-xs cursor-pointer active:scale-95"
+                >
+                  <span>🎲</span>
+                  <span>새 문제 뽑기</span>
+                </button>
+
+                <button
+                  onClick={handleToggleMute}
+                  className="p-2 sm:px-2.5 sm:py-1.5 rounded-xl border border-slate-200 hover:bg-amber-50 text-slate-700 text-xs font-bold cursor-pointer"
+                >
+                  {isMuted ? '🔇 음소거' : '🔊 소리 켬'}
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Area */}
+          <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col items-center justify-center">
+            {activeTab === 'sandbox' ? (
+              <BlockSandbox />
+            ) : gamePhase === 'ready' ? (
+              /* READY SCREEN */
+              <div className="w-full max-w-3xl bg-white rounded-3xl sm:rounded-4xl p-6 sm:p-10 shadow-2xl border-6 border-amber-300 text-center animate-in fade-in duration-300">
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-3">
+                  <span className="px-3.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-xs sm:text-sm font-black">
+                    🏫 보림초등학교 6학년 2반
+                  </span>
+                  <span className="px-3.5 py-1 rounded-full bg-sky-100 text-sky-900 border border-sky-300 text-xs sm:text-sm font-black">
+                    📐 수학 2단원: 공간과 입체
+                  </span>
+                  <span className="px-3.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-black">
+                    🎲 단일 파일 완전 호환 모드
+                  </span>
+                </div>
+
+                <div className="text-6xl sm:text-7xl mb-2">🎲🧊</div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-2">
+                  공간과 입체 OX 퀴즈 대모험!
+                </h1>
+                <p className="text-base sm:text-lg font-bold text-slate-600 mb-6">
+                  쌓기나무 개념을 10문제로 신나게 풀고 <strong>1000점 만점</strong>에 도전해보세요!
+                </p>
+
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 my-6 text-left">
+                  <div className="p-3.5 sm:p-4 bg-amber-50 rounded-2xl border-2 border-amber-200">
+                    <span className="text-xl">🎯</span>
+                    <h3 className="text-sm sm:text-base font-black text-amber-950 mt-1">10문제 1000점</h3>
+                    <p className="text-xs sm:text-sm font-bold text-slate-600">문제당 100점! 만점 왕관에 도전해요.</p>
+                  </div>
+                  <div className="p-3.5 sm:p-4 bg-rose-50 rounded-2xl border-2 border-rose-200">
+                    <span className="text-xl">⏱️</span>
+                    <h3 className="text-sm sm:text-base font-black text-rose-950 mt-1">문제당 15초 제한</h3>
+                    <p className="text-xs sm:text-sm font-bold text-slate-600">시작 후 15초 카운트다운! 5초 전 경고음 작동.</p>
+                  </div>
+                  <div className="p-3.5 sm:p-4 bg-indigo-50 rounded-2xl border-2 border-indigo-200">
+                    <span className="text-xl">📈</span>
+                    <h3 className="text-sm sm:text-base font-black text-indigo-950 mt-1">점점 어려워져요</h3>
+                    <p className="text-xs sm:text-sm font-bold text-slate-600">🌱 하(3) ➡️ 🌟 중(3) ➡️ 🔥 상(4) 순서!</p>
+                  </div>
+                  <div className="p-3.5 sm:p-4 bg-emerald-50 rounded-2xl border-2 border-emerald-200">
+                    <span className="text-xl">💡</span>
+                    <h3 className="text-sm sm:text-base font-black text-emerald-950 mt-1">친절한 해설</h3>
+                    <p className="text-xs sm:text-sm font-bold text-slate-600">틀려도 그림과 함께 핵심 요약으로 완벽 이해!</p>
+                  </div>
+                </div>
+
+                <div className="my-6">
+                  <button
+                    onClick={handleStartGame}
+                    className="w-full py-5 px-8 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-2xl sm:text-3xl rounded-3xl cursor-pointer shadow-[0_10px_0_#057a55] active:translate-y-2 active:shadow-[0_2px_0_#057a55] transition-all flex items-center justify-center gap-3 border-2 border-emerald-400 group"
+                  >
+                    <span className="group-hover:scale-125 transition-transform">🚀</span>
+                    <span>퀴즈 시작하기! (카운트다운 3, 2, 1)</span>
+                  </button>
+                  <p className="text-xs sm:text-sm font-bold text-slate-500 mt-2.5">
+                    버튼을 누르면 3초 카운트다운 후 1번 문제와 15초 제한 시간이 시작됩니다.
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t-2 border-amber-100 flex flex-wrap items-center justify-center gap-2.5">
+                  <button
+                    onClick={handleNewBankGame}
+                    className="px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-xs sm:text-sm shadow-xs cursor-pointer active:scale-95"
+                  >
+                    🎲 새로운 10문제 무작위 뽑기
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('sandbox')}
+                    className="px-4 py-2.5 rounded-2xl bg-sky-100 hover:bg-sky-200 text-sky-900 font-black text-xs sm:text-sm border border-sky-300 cursor-pointer active:scale-95"
+                  >
+                    🧊 쌓기나무 3D 실험실 둘러보기
+                  </button>
+                </div>
+              </div>
+            ) : gamePhase === 'completed' ? (
+              /* RESULT SCREEN */
+              <div className="w-full max-w-3xl bg-white rounded-4xl p-6 sm:p-10 shadow-2xl border-6 border-amber-300 text-center">
+                <div className="text-7xl sm:text-8xl mb-2 animate-bounce">
+                  {score === 1000 ? '👑' : score >= 800 ? '🌟' : score >= 600 ? '👍' : '🌱'}
+                </div>
+                <div className="inline-block px-5 py-1.5 rounded-full border-2 text-sm sm:text-base font-black mb-3 bg-amber-100 text-amber-900 border-amber-400">
+                  {score === 1000 ? '만점 달성! 공간의 제왕!' : score >= 800 ? '대단해요! 수학 박사님!' : '참 잘했어요!'}
+                </div>
+
+                <div className="my-2">
+                  <span className="text-sm font-extrabold text-slate-500 block">최종 획득 점수</span>
+                  <div className="text-5xl sm:text-7xl font-black text-rose-500 my-1">
+                    {score} <span className="text-3xl sm:text-4xl text-slate-700">/ 1000점</span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-600">
+                    총 10문제 중 <strong className="text-emerald-600 font-black">{answers.filter(a => a.isCorrect).length}문제</strong> 정답!
+                  </p>
+                </div>
+
+                <div className="my-6 p-6 bg-gradient-to-b from-amber-50 to-orange-50/50 rounded-3xl border-3 border-amber-200">
+                  <h4 className="text-xl font-black text-amber-950 mb-2">💌 선생님의 칭찬 편지</h4>
+                  <p className="text-lg font-bold text-slate-800 leading-relaxed">
+                    {score === 1000
+                      ? '와우! 1000점 퍼펙트 만점! 너는 진정한 공간과 입체의 마스터야! 머릿속으로 쌓기나무를 3D로 완벽하게 조립하는 놀라운 공간 지각력을 가졌어! ✨'
+                      : score >= 800
+                      ? '정말 훌륭해요! 6학년 수학의 어려운 공간과 입체 단원을 멋지게 정복했네요! 뛰어난 수학 박사님이에요! 👏'
+                      : '포기하지 않고 10문제를 완주한 열정이 정말 멋져요! 헷갈렸던 문제만 다시 복습해보면 다음엔 만점도 식은 죽 먹기예요! 💪'}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
+                  <button
+                    onClick={handleNewBankGame}
+                    className="w-full py-4 px-6 bg-amber-500 hover:bg-amber-600 text-white font-black text-xl rounded-2xl shadow-[0_8px_0_#b45309] active:translate-y-1.5 active:shadow-[0_2px_0_#b45309] cursor-pointer"
+                  >
+                    🎲 새로운 10문제 도전하기!
+                  </button>
+                  <button
+                    onClick={handleStartGame}
+                    className="w-full py-4 px-6 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xl rounded-2xl shadow-[0_8px_0_#057a55] active:translate-y-1.5 active:shadow-[0_2px_0_#057a55] cursor-pointer"
+                  >
+                    🔄 현재 문제 다시 풀기
+                  </button>
+                </div>
+
+                {/* Review section */}
+                <div className="mt-8 pt-6 border-t-2 border-amber-200 text-left space-y-4">
+                  <h4 className="text-lg font-black text-slate-900 mb-4">📝 내가 푼 10문제 풀이 전체 보기</h4>
+                  {questions.map((q, idx) => {
+                    const record = answers.find(a => a.questionId === q.id);
+                    const isCorrect = record?.isCorrect ?? false;
+                    const isTimeout = record?.isTimeout ?? false;
+                    return (
+                      <div
+                        key={q.id}
+                        className={`p-4 rounded-2xl border-2 ${
+                          isCorrect ? 'bg-emerald-50/60 border-emerald-300' : 'bg-rose-50/60 border-rose-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="w-7 h-7 rounded-full bg-slate-800 text-white font-black text-xs flex items-center justify-center">
+                              Q{idx + 1}
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[11px] font-black bg-amber-100 text-amber-800 border border-amber-300">
+                              {q.difficulty}
+                            </span>
+                            <span className="text-xs font-black text-slate-500">{q.conceptTitle}</span>
+                          </div>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-black ${
+                            isCorrect ? 'bg-emerald-200 text-emerald-900' : 'bg-rose-200 text-rose-900'
+                          }`}>
+                            {isCorrect ? '✅ 100점' : isTimeout ? '⏰ 시간초과' : '❌ 오답'}
+                          </span>
+                        </div>
+                        <p className="text-base font-bold text-slate-900 mb-2">{q.question}</p>
+                        <div className="text-xs font-semibold text-slate-700 bg-white/80 p-2.5 rounded-xl border border-slate-200">
+                          💡 {q.explanation}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              /* PLAYING QUIZ CARD */
+              currentQ && (
+                <div className="w-full max-w-3xl bg-white rounded-3xl sm:rounded-4xl p-6 sm:p-10 shadow-2xl border-6 border-amber-300 relative">
+                  {/* Top Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b-2 border-amber-100">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-2xl">🎲</span>
+                      <span className="text-base sm:text-lg font-black text-slate-900">
+                        보림초 6학년 2반
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-black border ${
+                        currentQ.difficulty === '하'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                          : currentQ.difficulty === '중'
+                          ? 'bg-sky-100 text-sky-800 border-sky-300'
+                          : 'bg-rose-100 text-rose-800 border-rose-300 animate-pulse'
+                      }`}>
+                        {currentQ.difficulty === '하' && '🌱 난이도: 하 (기초)'}
+                        {currentQ.difficulty === '중' && '🌟 난이도: 중 (실력)'}
+                        {currentQ.difficulty === '상' && '🔥 난이도: 상 (심화)'}
+                      </span>
+                    </div>
+
+                    <div className="bg-sky-50 border-2 border-sky-300 text-sky-900 px-4 py-1.5 rounded-2xl flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-sky-700">현재 점수</span>
+                      <span className="text-2xl font-black text-sky-600">{score}</span>
+                      <span className="text-xs font-bold text-sky-700">점</span>
+                    </div>
+                  </div>
+
+                  {/* 15-Second Timer Bar */}
+                  <div className="mt-4 mb-2">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-xl ${isUrgent ? 'animate-bounce' : ''}`}>⏱️</span>
+                        <span className="text-xs sm:text-sm font-black text-slate-700">남은 제한 시간</span>
+                      </div>
+                      <div className={`px-3 py-1 rounded-xl font-black text-base sm:text-lg border ${
+                        isUrgent
+                          ? 'bg-rose-100 text-rose-600 border-rose-400 animate-pulse'
+                          : timeLeft <= 8
+                          ? 'bg-amber-100 text-amber-800 border-amber-300'
+                          : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                      }`}>
+                        <span>{timeLeft}초</span>
+                        {isUrgent && <span className="text-xs ml-1 text-rose-500 font-extrabold">서둘러요!</span>}
+                      </div>
+                    </div>
+                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                      <div
+                        className={`h-full rounded-full transition-all duration-1000 ${
+                          isUrgent ? 'bg-rose-500' : timeLeft <= 8 ? 'bg-amber-500' : 'bg-emerald-500'
+                        }`}
+                        style={{ width: `${timePercent}%` }}
+                      ></div>
+                    </div>
+                  </div>
+
+                  {/* Progress Indicator */}
+                  <div className="my-3">
+                    <div className="flex justify-between items-center text-sm font-extrabold text-slate-600 mb-1">
+                      <span>
+                        Q. <strong className="text-lg text-slate-800 font-black">{currentIndex + 1}</strong> / {questions.length}
+                      </span>
+                      <span className="text-xs font-black text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                        100점 도전!
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-amber-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-orange-400 rounded-full" style={{ width: `${progressPercent}%` }}></div>
+                    </div>
+                  </div>
+
+                  {/* Question Box */}
+                  <div className="my-4 sm:my-6 p-6 sm:p-8 bg-amber-50/60 rounded-3xl border-3 border-dashed border-amber-300 flex flex-col items-center justify-center min-h-44 text-center">
+                    <span className="text-xs sm:text-sm font-black text-amber-700 mb-2 uppercase">
+                      맞으면 O, 틀리면 X를 골라보세요!
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 leading-snug">
+                      {currentQ.question}
+                    </h2>
+                  </div>
+
+                  {/* Diagram */}
+                  <div className="my-5">
+                    <QuestionDiagram type={currentQ.diagramType} />
+                  </div>
+
+                  {/* Chunky O / X Buttons */}
+                  <div className="grid grid-cols-2 gap-4 sm:gap-6 mt-6">
+                    <button
+                      onClick={() => handleAnswer('O')}
+                      disabled={isFeedbackOpen || timeLeft <= 0}
+                      className="flex flex-col items-center justify-center h-32 sm:h-38 bg-emerald-500 hover:bg-emerald-600 text-white rounded-3xl sm:rounded-4xl font-black cursor-pointer shadow-[0_10px_0_#057a55] active:translate-y-2 active:shadow-[0_2px_0_#057a55] transition-all disabled:opacity-50 border-2 border-emerald-400 group"
+                    >
+                      <span className="text-6xl sm:text-7xl leading-none group-hover:scale-110 transition-transform">⭕</span>
+                      <span className="text-xl sm:text-2xl font-black mt-1">그렇다 (O)</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleAnswer('X')}
+                      disabled={isFeedbackOpen || timeLeft <= 0}
+                      className="flex flex-col items-center justify-center h-32 sm:h-38 bg-rose-500 hover:bg-rose-600 text-white rounded-3xl sm:rounded-4xl font-black cursor-pointer shadow-[0_10px_0_#be123c] active:translate-y-2 active:shadow-[0_2px_0_#be123c] transition-all disabled:opacity-50 border-2 border-rose-400 group"
+                    >
+                      <span className="text-6xl sm:text-7xl leading-none group-hover:scale-110 transition-transform">❌</span>
+                      <span className="text-xl sm:text-2xl font-black mt-1">아니다 (X)</span>
+                    </button>
+                  </div>
+                </div>
+              )
+            )}
+          </main>
+
+          {/* 3, 2, 1 Countdown Animation Overlay */}
+          {gamePhase === 'countdown' && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md">
+              <div className="text-center select-none">
+                <div className="text-sm sm:text-base font-black text-amber-300 mb-2 tracking-widest animate-pulse">
+                  보림초 6학년 2반 · 공간과 입체
+                </div>
+                {countdownNumber > 0 ? (
+                  <div key={countdownNumber} className="text-8xl sm:text-9xl font-black text-amber-400 drop-shadow-lg">
+                    {countdownNumber}
+                  </div>
+                ) : (
+                  <div className="text-7xl sm:text-8xl font-black text-emerald-400 drop-shadow-lg flex flex-col items-center">
+                    <span>출발! 🚀</span>
+                    <span className="text-2xl text-white font-extrabold mt-3">1번 문제 시작!</span>
+                  </div>
+                )}
+                <div className="mt-6 text-slate-200 text-sm sm:text-base font-bold">
+                  {countdownNumber > 0 ? '준비하세요! 문제가 곧 시작됩니다...' : '15초 제한 시간 카운트다운 시작!'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Answer Feedback Modal */}
+          {isFeedbackOpen && currentQ && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+              <div className="w-full max-w-xl bg-white rounded-4xl p-6 sm:p-8 shadow-2xl border-6 border-amber-300 text-center">
+                <div className="text-6xl mb-2 animate-bounce">
+                  {currentUserAnswer === 'TIMEOUT' ? '⏰' : currentUserAnswer === currentQ.answer ? '🎉' : '💡'}
+                </div>
+                <h3 className={`text-2xl sm:text-3xl font-black mb-1 ${
+                  currentUserAnswer === 'TIMEOUT' ? 'text-orange-600' : currentUserAnswer === currentQ.answer ? 'text-emerald-600' : 'text-rose-600'
+                }`}>
+                  {currentUserAnswer === 'TIMEOUT'
+                    ? '시간 초과! (15초 종료) ⏰'
+                    : currentUserAnswer === currentQ.answer
+                    ? '딩동댕! 정답입니다! (+100점)'
+                    : '아쉽지만 오답이에요!'}
+                </h3>
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs sm:text-sm font-extrabold my-2">
+                  <span>내가 고른 답: <strong>{currentUserAnswer === 'TIMEOUT' ? '⏰ 미선택' : currentUserAnswer}</strong></span>
+                  <span>·</span>
+                  <span>실제 정답: <strong className="text-emerald-700 underline text-base font-black">{currentQ.answer}</strong></span>
+                </div>
+
+                <div className="my-4 p-5 bg-amber-50 rounded-2xl border-2 border-amber-200 text-left">
+                  <div className="flex items-center gap-2 text-xs font-black text-amber-800 mb-1.5">
+                    <span>📖</span>
+                    <span>선생님의 친절한 설명</span>
+                  </div>
+                  <p className="text-base sm:text-lg font-bold text-slate-800 leading-relaxed">
+                    {currentQ.explanation}
+                  </p>
+                  <div className="mt-3 pt-3 border-t border-amber-200 flex items-start gap-2 text-xs sm:text-sm font-extrabold text-amber-950">
+                    <span className="shrink-0 text-amber-600">⭐ 핵심 요약:</span>
+                    <span>{currentQ.keyTakeaway}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleNextQuestion}
+                  autoFocus
+                  className="w-full py-4 px-8 mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xl rounded-2xl shadow-[0_8px_0_#3730a3] active:translate-y-1.5 active:shadow-[0_2px_0_#3730a3] cursor-pointer"
+                >
+                  {currentIndex + 1 === questions.length ? '최종 결과 확인하기 🏆' : '다음 문제로 가기 ▶'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="w-full py-4 text-center text-xs font-bold text-slate-500 border-t border-amber-200 bg-white/50">
+            보림초 6학년 2반 수학 · 2단원 공간과 입체 OX 퀴즈 게임 (GitHub Pages 호환 단일 HTML 버전)
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
